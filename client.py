@@ -58,7 +58,7 @@ async def main():
                 running = False
 
         async for event in client.get_events():
-            logging.info(event.type, event.data)
+            ...
 
         screen.fill(fill_color)
 
