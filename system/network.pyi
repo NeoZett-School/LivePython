@@ -17,6 +17,7 @@ from typing import (
 
 class Event:
     """Represents an event that occurs in the server or client."""
+    
     type: str
     data: Dict[str, Any]
     conn: Optional["Connection"]
