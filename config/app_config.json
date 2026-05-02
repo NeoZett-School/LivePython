@@ -1,0 +1,11 @@
+{
+    "app_name": "MyApp",
+    "app_version": "1.0.0",
+    "window_title": "MyApp",
+    "window_icon": "assets/icon.png",
+    "screen_dimensions": {
+        "width": 800,
+        "height": 600
+    },
+    "fill_color": [255, 255, 255]
+}
