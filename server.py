@@ -9,12 +9,12 @@ import json
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 
+LOG_FILE = r'log\server_log.txt'
+CONFIG_FILE = r'config\server_config.json'
 APP_CONFIG = r'config\app_config.json'
 
 app_config = json.load(open(APP_CONFIG, "r"))
 
-LOG_FILE = r'log\server_log.txt'
-CONFIG_FILE = r'config\server_config.json'
 APP_ID = fr'PythonLive.{app_config["app_name"]}.Server.{app_config["app_version"]}'
 
 logging.basicConfig(
