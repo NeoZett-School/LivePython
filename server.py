@@ -39,6 +39,9 @@ screen = pygame.display.set_mode(tuple(app_config['screen_dimensions'].values())
 
 fill_color = app_config["fill_color"]
 
+def quit():
+    pygame.event.post(pygame.event.Event(pygame.QUIT))
+
 async def main():
     server = network.Server()
     await server.start(server_config["host"], server_config["port"], reuse_address=True, family=socket.AF_INET)
@@ -55,6 +58,8 @@ async def main():
             if event.type == pygame.QUIT:
                 await server.stop()
                 running = False
+            
+            # Handle pygame events
         
         for _ in range(MAX_EVENTS_PER_TICK):
             try:
@@ -65,6 +70,8 @@ async def main():
             if event.type == "disconnect":
                 if event.conn in server.clients:
                     server.clients.remove(event.conn)
+            
+            # Handle network events
         
         now = time.perf_counter()
         frame_time = min(now - last_time, 0.25)
