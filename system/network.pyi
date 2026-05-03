@@ -19,12 +19,13 @@ class Event:
     """Represents an event that occurs in the server or client."""
     
     type: str
+    tick: int
     data: Dict[str, Any]
     conn: Optional["Connection"]
 
-    def __init__(self: Self, type: str, data: Dict[str, Any], conn: Optional["Connection"] = None) -> None: ...
+    def __init__(self: Self, type: str, tick: int, data: Dict[str, Any], conn: Optional["Connection"] = None) -> None: ...
 
-def encode_message(msg_type: str, **data: Any) -> bytes: 
+def encode_message(msg_type: str, tick: int, **data: Any) -> bytes: 
     """Encodes a message with a type and associated data into bytes for transmission."""
 async def read_message(reader: asyncio.StreamReader) -> Optional[Dict[str, Any]]: 
     """Reads a message from the given StreamReader and decodes it into a dictionary. 
@@ -37,6 +38,7 @@ class Connection:
     writer: asyncio.StreamWriter
     queue: asyncio.Queue
     running: bool
+    tick: int
 
     def __init__(self: Self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, queue: asyncio.Queue) -> None: ...
     async def run(self: Self) -> None: ...

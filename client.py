@@ -5,9 +5,12 @@ import asyncio
 import sys, os
 import socket
 import json
+import time
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
+
+MAX_EVENTS_PER_TICK = 50
 
 LOG_FILE = r'log\client_log.txt'
 CONFIG_FILE = r'config\client_config.json'
@@ -41,28 +44,45 @@ async def main():
     await client.connect(client_config["host"], client_config["port"], family=socket.AF_INET)
 
     running = True
-    target = 1 / 60
-    last_time = asyncio.get_event_loop().time()
+    dt = 1 / 60
+    accumulator = 0.0
+    last_time = time.perf_counter()
 
     while running:
-        now = asyncio.get_event_loop().time()
-        delta_time = now - last_time
-        last_time = now
-
-        sleep_time = target - delta_time
-        await asyncio.sleep(max(0, sleep_time))
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 await client.disconnect()
                 running = False
 
-        async for event in client.get_events():
+        for _ in range(MAX_EVENTS_PER_TICK):
+            try:
+                event = client.event_queue.get_nowait()
+            except asyncio.QueueEmpty:
+                break
+
             ...
+        
+        now = time.perf_counter()
+        frame_time = min(now - last_time, 0.25)
+        last_time = now
+
+        accumulator += frame_time
+
+        while accumulator >= dt:
+
+            # Update your game state using dt
+
+            accumulator -= dt
 
         screen.fill(fill_color)
 
+        alpha = accumulator / dt
+
+        # Render the game state
+
         pygame.display.flip()
+
+        await asyncio.sleep(0)
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -17,15 +17,16 @@ import struct
 import msgpack
 
 class Event:
-    __slots__ = ("type", "data", "conn")
+    __slots__ = ("type", "tick", "data", "conn")
     
-    def __init__(self, type, data, conn=None):
+    def __init__(self, type, tick, data, conn=None):
         self.type = type
+        self.tick = tick
         self.data = data
         self.conn = conn
 
-def encode_message(msg_type, **data):
-    payload = {"type": msg_type, "data": data}
+def encode_message(msg_type, tick, **data):
+    payload = {"type": msg_type, "tick": tick, "data": data}
     raw = msgpack.packb(payload, use_bin_type=True)
     return struct.pack("!I", len(raw)) + raw
 
@@ -45,13 +46,14 @@ async def read_message(reader):
     return msgpack.unpackb(payload, raw=False)
 
 class Connection:
-    __slots__ = ("reader", "writer", "queue", "running")
+    __slots__ = ("reader", "writer", "queue", "running", "tick")
 
     def __init__(self, reader, writer, queue):
         self.reader = reader
         self.writer = writer
         self.queue = queue
         self.running = True
+        self.tick = 0
 
     async def run(self):
         try:
@@ -66,6 +68,8 @@ class Connection:
                     conn=self
                 ))
 
+                self.tick += 1
+
         except (asyncio.IncompleteReadError, ConnectionResetError):
             pass
         finally:
@@ -77,7 +81,7 @@ class Connection:
             return
 
         try:
-            self.writer.write(encode_message(msg_type, **data))
+            self.writer.write(encode_message(msg_type, self.tick, **data))
             await self.writer.drain()
         except ConnectionResetError:
             self.running = False
@@ -116,15 +120,9 @@ class Server:
         asyncio.create_task(conn.run())
 
     async def broadcast(self, msg_type, **data):
-        for client in self.clients:
-            await client.send(msg_type, **data)
-
-    async def get_events(self):
-        while True:
-            try:
-                yield self.event_queue.get_nowait()
-            except asyncio.QueueEmpty:
-                break
+        await asyncio.gather(
+            *(client.send(msg_type, **data) for client in self.clients)
+        )
 
     async def stop(self):
         for client in self.clients:
@@ -156,13 +154,6 @@ class Client:
     async def send(self, msg_type, **data):
         if self.conn:
             await self.conn.send(msg_type, **data)
-
-    async def get_events(self):
-        while True:
-            try:
-                yield self.event_queue.get_nowait()
-            except asyncio.QueueEmpty:
-                break
 
     async def disconnect(self):
         if self.conn:
