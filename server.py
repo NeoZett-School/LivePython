@@ -47,6 +47,7 @@ async def main():
     await server.start(server_config["host"], server_config["port"], reuse_address=True, family=socket.AF_INET)
 
     running = True
+    
     dt = 1 / 60
     accumulator = 0.0
     last_time = time.perf_counter()

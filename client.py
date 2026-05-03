@@ -47,6 +47,7 @@ async def main():
     await client.connect(client_config["host"], client_config["port"], family=socket.AF_INET)
 
     running = True
+    
     dt = 1 / 60
     accumulator = 0.0
     last_time = time.perf_counter()
