@@ -47,8 +47,8 @@ async def main():
     await server.start(server_config["host"], server_config["port"], reuse_address=True, family=socket.AF_INET)
 
     running = True
-    
-    dt = 1 / 60
+
+    delta_time = 1 / 60
     accumulator = 0.0
     last_time = time.perf_counter()
 
@@ -80,15 +80,15 @@ async def main():
 
         accumulator += frame_time
 
-        while accumulator >= dt:
+        while accumulator >= delta_time:
 
             # Update your game state using dt
 
-            accumulator -= dt
+            accumulator -= delta_time
 
         screen.fill(fill_color)
 
-        alpha = accumulator / dt
+        alpha = accumulator / delta_time
 
         # Render the game state
 
