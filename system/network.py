@@ -46,14 +46,13 @@ async def read_message(reader):
     return msgpack.unpackb(payload, raw=False)
 
 class Connection:
-    __slots__ = ("reader", "writer", "queue", "running", "tick")
+    __slots__ = ("reader", "writer", "queue", "running")
 
     def __init__(self, reader, writer, queue):
         self.reader = reader
         self.writer = writer
         self.queue = queue
         self.running = True
-        self.tick = 0
 
     async def run(self):
         try:
@@ -64,11 +63,10 @@ class Connection:
 
                 await self.queue.put(Event(
                     type=msg["type"],
+                    tick=msg["tick"],
                     data=msg["data"],
                     conn=self
                 ))
-
-                self.tick += 1
 
         except (asyncio.IncompleteReadError, ConnectionResetError):
             pass
@@ -76,12 +74,12 @@ class Connection:
             await self.queue.put(Event("disconnect", {}, self))
             await self.close()
 
-    async def send(self, msg_type, **data):
+    async def send(self, msg_type, tick, **data):
         if not self.running:
             return
 
         try:
-            self.writer.write(encode_message(msg_type, self.tick, **data))
+            self.writer.write(encode_message(msg_type, tick, **data))
             await self.writer.drain()
         except ConnectionResetError:
             self.running = False
@@ -119,9 +117,9 @@ class Server:
 
         asyncio.create_task(conn.run())
 
-    async def broadcast(self, msg_type, **data):
+    async def broadcast(self, msg_type, tick, **data):
         await asyncio.gather(
-            *(client.send(msg_type, **data) for client in self.clients)
+            *(client.send(msg_type, tick, **data) for client in self.clients)
         )
 
     async def stop(self):
@@ -151,9 +149,9 @@ class Client:
 
         asyncio.create_task(self.conn.run())
 
-    async def send(self, msg_type, **data):
+    async def send(self, msg_type, tick, **data):
         if self.conn:
-            await self.conn.send(msg_type, **data)
+            await self.conn.send(msg_type, tick, **data)
 
     async def disconnect(self):
         if self.conn:
