@@ -48,6 +48,8 @@ async def main():
     accumulator = 0.0
     last_time = time.perf_counter()
 
+    frame_counter = 0
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -59,7 +61,7 @@ async def main():
                 event = server.event_queue.get_nowait()
             except asyncio.QueueEmpty:
                 break
-            
+
             if event.type == "disconnect":
                 if event.conn in server.clients:
                     server.clients.remove(event.conn)
@@ -85,6 +87,7 @@ async def main():
         pygame.display.flip()
 
         await asyncio.sleep(0)
+        frame_counter += 1
 
 if __name__ == "__main__":
     asyncio.run(main())
