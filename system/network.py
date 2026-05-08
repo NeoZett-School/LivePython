@@ -71,7 +71,12 @@ class Connection:
         except (asyncio.IncompleteReadError, ConnectionResetError):
             pass
         finally:
-            await self.queue.put(Event("disconnect", {}, self))
+            await self.queue.put(Event(
+                type="disconnect", 
+                tick=0, 
+                data={}, 
+                conn=self
+            ))
             await self.close()
 
     async def send(self, msg_type, tick, **data):
@@ -113,7 +118,12 @@ class Server:
         conn = Connection(reader, writer, self.event_queue)
         self.clients.append(conn)
 
-        await self.event_queue.put(Event("connect", {}, conn))
+        await self.event_queue.put(Event(
+            type="connect", 
+            tick=0, 
+            data={}, 
+            conn=conn
+        ))
 
         asyncio.create_task(conn.run())
 
