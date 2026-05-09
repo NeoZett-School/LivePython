@@ -44,7 +44,13 @@ def quit():
 
 async def main():
     server = network.Server()
-    await server.start(server_config["host"], server_config["port"], reuse_address=True, family=socket.AF_INET)
+    await server.start(
+        host=server_config["host"], 
+        port=server_config["port"], 
+        ws_port=server_config["ws_port"], 
+        reuse_address=True, 
+        family=socket.AF_INET
+    )
 
     running = True
 
