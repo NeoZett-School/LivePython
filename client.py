@@ -7,6 +7,23 @@ import socket
 import json
 import time
 
+import win32event
+import win32api
+import winerror
+
+import warnings
+warnings.simplefilter("always")
+
+import psutil
+
+def is_local_address(ip_to_check):
+    interfaces = psutil.net_if_addrs()
+    for interface_name, interface_addresses in interfaces.items():
+        for address in interface_addresses:
+            if address.address == ip_to_check:
+                return True
+    return False
+
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 
@@ -29,9 +46,17 @@ logging.basicConfig(
 redirect_except()
 set_appid(APP_ID)
 
+mutex = win32event.CreateMutex(None, False, APP_ID)
+last_error = win32api.GetLastError()
+has_another_client = last_error == winerror.ERROR_ALREADY_EXISTS
+
 pygame.init()
 
 client_config = json.load(open(CONFIG_FILE, "r"))
+
+is_device_server = is_local_address(client_config["host"])
+
+is_device_instance = not (has_another_client or is_device_server) # Useful for overlapping sounds
 
 pygame.display.set_caption(app_config['window_title'])
 pygame.display.set_icon(pygame.image.load(app_config['window_icon']))
