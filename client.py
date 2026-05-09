@@ -33,7 +33,8 @@ LOG_FILE = r'log\client_log.txt'
 CONFIG_FILE = r'config\client_config.json'
 APP_CONFIG = r'config\app_config.json'
 
-app_config = json.load(open(APP_CONFIG, "r"))
+with open(APP_CONFIG, "r") as f:
+    app_config = json.load(f)
 
 APP_ID = fr'PythonLive.{app_config["app_name"]}.Client.{app_config["app_version"]}'
 
@@ -52,7 +53,8 @@ has_another_client = last_error == winerror.ERROR_ALREADY_EXISTS
 
 pygame.init()
 
-client_config = json.load(open(CONFIG_FILE, "r"))
+with open(CONFIG_FILE, "r") as f:
+    client_config = json.load(f)
 
 is_device_server = is_local_address(client_config["host"])
 
